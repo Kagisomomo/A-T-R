@@ -7,9 +7,11 @@ interface MatchCardProps {
   match: Match;
   currentUserId: string;
   onReportScore: () => void;
+  onViewDetails?: () => void;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, currentUserId, onReportScore }) => {
+  onReportScore,
+  onViewDetails
   const opponent = UserService.getPlayerById(
     match.challengerId === currentUserId ? match.challengedId : match.challengerId
   );
@@ -51,7 +53,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, currentUserId, onReportSco
   if (!opponent) return null;
 
   return (
-    <div className="card">
+    <div className="card" onClick={onViewDetails} style={{ cursor: 'pointer' }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="player-avatar text-sm">
@@ -120,6 +122,18 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, currentUserId, onReportSco
         >
           <Target size={16} />
           Report Score
+        </button>
+      )}
+      
+      {match.status !== 'pending' && onViewDetails && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails();
+          }}
+          className="btn btn-secondary btn-glare w-full"
+        >
+          View Details
         </button>
       )}
     </div>

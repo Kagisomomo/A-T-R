@@ -5,7 +5,7 @@ import { useMatchStore } from '../../stores/matchStore';
 import MatchCard from '../MatchCard';
 import CreateMatchModal from './CreateMatchModal';
 import ScoreModal from '../ScoreModal';
-import MatchDetailsPage from '../MatchDetailsPage';
+import { useNavigate } from 'react-router-dom';
 import type { Database } from '../../types/database';
 
 type Match = Database['public']['Tables']['matches']['Row'];
@@ -21,11 +21,10 @@ export const MatchList: React.FC = () => {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showMatchDetails, setShowMatchDetails] = useState(false);
-  const [selectedMatchForDetails, setSelectedMatchForDetails] = useState<Match | null>(null);
   
   const { user, profile } = useAuthStore();
   const { fetchMatches, matches: storeMatches, loading } = useMatchStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -155,13 +154,7 @@ export const MatchList: React.FC = () => {
   };
 
   const handleViewMatchDetails = (match: Match) => {
-    setSelectedMatchForDetails(match);
-    setShowMatchDetails(true);
-  };
-
-  const handleBackFromDetails = () => {
-    setShowMatchDetails(false);
-    setSelectedMatchForDetails(null);
+    navigate(`/matches/${match.id}`);
   };
 
   const getFilterCount = (status: Match['status']) => {
@@ -184,14 +177,6 @@ export const MatchList: React.FC = () => {
   };
 
   // Show match details page if selected
-  if (showMatchDetails && selectedMatchForDetails) {
-    return (
-      <MatchDetailsPage
-        match={selectedMatchForDetails}
-        onBack={handleBackFromDetails}
-      />
-    );
-  }
 
   if (loading) {
     return (
@@ -262,9 +247,11 @@ export const MatchList: React.FC = () => {
               {recentMatches.map((match) => (
                 <div key={match.id} className="match-card-with-details">
                   <MatchCard
+                    key={match.id}
                     match={match}
                     currentUserId={user?.id || ''}
                     onReportScore={() => handleReportScore(match)}
+                    onViewDetails={() => handleViewMatchDetails(match)}
                   />
                   
                   <button
@@ -342,9 +329,11 @@ export const MatchList: React.FC = () => {
                 filteredMatches.map((match) => (
                   <MatchCard
                     key={match.id}
+                    key={match.id}
                     match={match}
                     currentUserId={user?.id || ''}
                     onReportScore={() => handleReportScore(match)}
+                    onViewDetails={() => handleViewMatchDetails(match)}
                   />
                 ))
               ) : (

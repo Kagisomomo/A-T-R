@@ -18,6 +18,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import RankingsPage from './pages/RankingsPage';
 import UmpirePage from './pages/UmpirePage';
+import MatchDetailPage from './pages/MatchDetailPage';
 
 // Import core styles only
 import './styles/base.css';
@@ -109,6 +110,7 @@ function App() {
               <Routes>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/matches" element={<MatchesPage />} />
+                <Route path="/matches/:matchId" element={<MatchDetailPage />} />
                 <Route path="/tournaments" element={<TournamentsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/rankings" element={<RankingsPage />} />
