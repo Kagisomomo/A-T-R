@@ -59,7 +59,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   }
 
   return (
-    <div className="card" onClick={onViewDetails} style={{ cursor: 'pointer' }}>
+    <div className="card" onClick={onViewDetails ? () => onViewDetails() : undefined} style={{ cursor: onViewDetails ? 'pointer' : 'default' }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="player-avatar text-sm">
@@ -131,11 +131,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </button>
       )}
       
-      {match.status !== 'pending' && onViewDetails && (
+      {!isCompleted && match.status !== 'pending' && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onViewDetails();
+            if (onViewDetails) onViewDetails();
           }}
           className="btn btn-secondary btn-glare w-full"
         >

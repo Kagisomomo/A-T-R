@@ -235,6 +235,7 @@ export const MatchList: React.FC = () => {
                   match={match}
                   currentUserId={user?.id || ''}
                   onReportScore={() => handleReportScore(match)}
+                 onViewDetails={() => handleViewMatchDetails(match)}
                 />
               ))}
             </div>
