@@ -10,8 +10,12 @@ interface MatchCardProps {
   onViewDetails?: () => void;
 }
 
+const MatchCard: React.FC<MatchCardProps> = ({
+  match,
+  currentUserId,
   onReportScore,
   onViewDetails
+}) => {
   const opponent = UserService.getPlayerById(
     match.challengerId === currentUserId ? match.challengedId : match.challengerId
   );
