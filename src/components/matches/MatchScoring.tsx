@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import LoadingSpinner from '../LoadingSpinner'
 import { Clock, Trophy, Users, Save, X, Play, Pause } from 'lucide-react'
 import { useMatchStore } from '../../stores/matchStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -123,9 +124,11 @@ export const MatchScoring: React.FC<MatchScoringProps> = ({
   // Get player profiles
   const [player1Profile, setPlayer1Profile] = useState<any>(null)
   const [player2Profile, setPlayer2Profile] = useState<any>(null)
+  const [loadingProfiles, setLoadingProfiles] = useState(true)
 
   useEffect(() => {
     const fetchProfiles = async () => {
+      setLoadingProfiles(true)
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
@@ -134,11 +137,18 @@ export const MatchScoring: React.FC<MatchScoringProps> = ({
       if (profiles) {
         setPlayer1Profile(profiles.find(p => p.user_id === match.player1_id))
         setPlayer2Profile(profiles.find(p => p.user_id === match.player2_id))
+      } else {
+        console.error('Failed to load player profiles')
       }
+      setLoadingProfiles(false)
     }
 
     fetchProfiles()
   }, [match.player1_id, match.player2_id])
+  
+  if (loadingProfiles) {
+    return <LoadingSpinner text="Loading match data..." />
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import MatchDetailsPage from '../components/MatchDetailsPage';
 import type { Database } from '../types/database';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { Match } from '../types';
 
 const MatchDetailPage: React.FC = () => {
@@ -63,8 +64,12 @@ const MatchDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-spinner"></div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <LoadingSpinner 
+          size="large" 
+          text="Loading match details..." 
+          subtext="Retrieving match information"
+        />
       </div>
     );
   }

@@ -7,6 +7,7 @@ import CreateMatchModal from './CreateMatchModal';
 import ScoreModal from '../ScoreModal';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../../types/database';
+import LoadingSpinner from '../LoadingSpinner';
 
 type Match = Database['public']['Tables']['matches']['Row'];
 
@@ -182,8 +183,12 @@ export const MatchList: React.FC = () => {
     return (
       <div className="matches-page">
         <div className="matches-container">
-          <div className="flex items-center justify-center h-64">
-            <div className="loading-spinner"></div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <LoadingSpinner 
+              size="large" 
+              text="Loading matches..." 
+              subtext="Retrieving your match history"
+            />
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, Clock, Target, ChevronRight } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import LoadingSpinner from '../LoadingSpinner'
 import { useAuthStore } from '../../stores/authStore'
 import type { Database } from '../../types/database'
 
@@ -175,8 +176,12 @@ export const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner 
+          size="large" 
+          text="Loading tournament details..." 
+          subtext="Retrieving tournament information"
+        />
       </div>
     )
   }

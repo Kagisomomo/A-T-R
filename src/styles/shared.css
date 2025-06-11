@@ -209,18 +209,39 @@
 /* Loading States */
 .loading {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 2rem;
+  text-align: center;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-subtle);
-  border-top: 3px solid var(--quantum-cyan);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.25rem solid rgba(64, 220, 255, 0.1);
+  border-top: 0.25rem solid var(--quantum-cyan);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.loading-spinner.w-6 {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.2rem;
+}
+
+.loading-spinner.w-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 0.25rem;
+}
+
+.loading-spinner.w-16 {
+  width: 4rem;
+  height: 4rem;
+  border-width: 0.3rem;
 }
 
 /* Search Components */

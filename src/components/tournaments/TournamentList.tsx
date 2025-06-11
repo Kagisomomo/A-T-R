@@ -3,6 +3,7 @@ import { Trophy, Calendar, MapPin, Users, Plus, Search, Filter } from 'lucide-re
 import { useTournamentStore } from '../../stores/tournamentStore'
 import { useAuthStore } from '../../stores/authStore'
 import { supabase } from '../../lib/supabase'
+import LoadingSpinner from '../LoadingSpinner'
 import type { Database } from '../../types/database'
 
 type Tournament = Database['public']['Tables']['tournaments']['Row']
@@ -159,8 +160,12 @@ export const TournamentList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="loading-spinner"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner 
+          size="large" 
+          text="Loading tournaments..." 
+          subtext="Retrieving tournament information"
+        />
       </div>
     )
   }

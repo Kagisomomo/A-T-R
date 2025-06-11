@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { User, Camera, Save, X } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { supabase } from '../../lib/supabase'
+import LoadingSpinner from '../LoadingSpinner'
 import type { Database } from '../../types/database'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -95,8 +96,12 @@ export const ProfileForm: React.FC = () => {
 
   if (!profile) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="loading-spinner"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner 
+          size="large" 
+          text="Loading profile..." 
+          subtext="Retrieving your profile information"
+        />
       </div>
     )
   }

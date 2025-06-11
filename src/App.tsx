@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { DataInitializationService } from './services/DataInitializationService';
 import Sidebar from './components/layout/Sidebar';
 import { initSentry } from './lib/sentry';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Import pages
 import LoginPage from './pages/LoginPage';
@@ -69,15 +70,11 @@ function App() {
   if (loading || !isDataReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="loading text-center">
-          <div className="loading-spinner mx-auto mb-4"></div>
-          <p className="text-lg font-medium" style={{ color: 'var(--text-standard)' }}>
-            Initializing Africa Tennis...
-          </p>
-          <p className="text-sm mt-2" style={{ color: 'var(--text-subtle)' }}>
-            Setting up your tennis experience
-          </p>
-        </div>
+        <LoadingSpinner 
+          size="large" 
+          text="Initializing Africa Tennis..." 
+          subtext="Setting up your tennis experience"
+        />
       </div>
     );
   }
