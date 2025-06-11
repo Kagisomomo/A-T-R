@@ -329,7 +329,6 @@ export const MatchList: React.FC = () => {
                 filteredMatches.map((match) => (
                   <MatchCard
                     key={match.id}
-                    key={match.id}
                     match={match}
                     currentUserId={user?.id || ''}
                     onReportScore={() => handleReportScore(match)}

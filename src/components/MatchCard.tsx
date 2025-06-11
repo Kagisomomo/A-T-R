@@ -54,7 +54,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
     }
   };
 
-  if (!opponent) return null;
+  if (!opponent) {
+    return null;
+  }
 
   return (
     <div className="card" onClick={onViewDetails} style={{ cursor: 'pointer' }}>
