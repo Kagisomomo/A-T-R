@@ -75,7 +75,7 @@ export const MatchScoring: React.FC<MatchScoringProps> = ({ match, onBack }) => 
         sets: [],
         current_game: { player1: '0', player2: '0' },
         server_id: match.player1_id,
-        metadata: { pointType: pointType }
+        is_tiebreak: false
       });
     }
 
