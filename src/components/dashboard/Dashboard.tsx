@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Zap, Trophy, Calendar, ChevronRight } from 'lucide-react';
+import { Target, Zap, Trophy, Calendar, ChevronRight, MapPin } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useMatchStore } from '../../stores/matchStore';
 import MatchRequestActions from '../matches/MatchRequestActions';
