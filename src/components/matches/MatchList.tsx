@@ -239,6 +239,7 @@ export const MatchList: React.FC = () => {
                   currentUserId={user?.id || ''}
                   onReportScore={() => handleReportScore(match)}
                  onViewDetails={() => handleViewMatchDetails(match)}
+                  onActionComplete={() => fetchMatches(user?.id || '')}
                 />
               ))}
             </div>
@@ -261,6 +262,7 @@ export const MatchList: React.FC = () => {
                     currentUserId={user?.id || ''}
                     onReportScore={() => handleReportScore(match)}
                     onViewDetails={() => handleViewMatchDetails(match)}
+                    onActionComplete={() => fetchMatches(user?.id || '')}
                   />
                   
                   <button
@@ -342,6 +344,7 @@ export const MatchList: React.FC = () => {
                     currentUserId={user?.id || ''}
                     onReportScore={() => handleReportScore(match)}
                     onViewDetails={() => handleViewMatchDetails(match)}
+                    onActionComplete={() => fetchMatches(user?.id || '')}
                   />
                 ))
               ) : (

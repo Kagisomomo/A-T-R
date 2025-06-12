@@ -1,12 +1,14 @@
 import React from 'react';
 import { Calendar, MapPin, Trophy, Clock, Target } from 'lucide-react';
 import { Match } from '../types';
+import MatchRequestActions from './matches/MatchRequestActions';
 
 interface MatchCardProps {
   match: Match;
   currentUserId: string;
   onReportScore: () => void;
   onViewDetails?: () => void;
+  onActionComplete?: () => void;
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({
@@ -14,6 +16,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   currentUserId,
   onReportScore,
   onViewDetails
+  onActionComplete = () => {}
 }) => {
   // Determine which player is the opponent based on the current user ID
   const isChallenger = match.challengerId === currentUserId;
@@ -119,14 +122,23 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </div>
       )}
 
-      {match.status === 'pending' && (
+      {/* Show report score button for the challenger if match is pending */}
+      {match.status === 'pending' && isChallenger && (
         <button
           onClick={onReportScore}
           className="btn btn-secondary btn-glare w-full"
         >
           <Target size={16} />
-          Report Score
+          Update Match
         </button>
+      )}
+      
+      {/* Show accept/decline buttons for the challenged player if match is pending */}
+      {match.status === 'pending' && !isChallenger && (
+        <MatchRequestActions 
+          match={match} 
+          onActionComplete={onActionComplete} 
+        />
       )}
       
       {!isCompleted && match.status !== 'pending' && (
