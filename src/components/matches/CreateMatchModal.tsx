@@ -484,5 +484,3 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
 };
 
 export default CreateMatchModal;
-
-export default CreateMatchModal

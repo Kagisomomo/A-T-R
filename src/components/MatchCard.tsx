@@ -15,7 +15,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   match,
   currentUserId,
   onReportScore,
-  onViewDetails
+  onViewDetails,
   onActionComplete = () => {}
 }) => {
   // Determine which player is the opponent based on the current user ID
