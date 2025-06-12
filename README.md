@@ -1,13 +1,12 @@
 # Chess Tournament Platform
 
-A comprehensive chess tournament management platform built with React, Supabase, and AWS Lambda.
+A comprehensive tennis tournament management platform built with React, Supabase, and AWS Lambda.
 
 ## Architecture
 
 - **Frontend**: React with Zustand state management and Vite build tool
 - **Backend**: Supabase for data storage, authentication, and real-time features
-- **Business Logic**: AWS Lambda functions with API Gateway
-- **Deployment**: AWS Amplify for CI/CD
+- **Deployment**: Netlify for CI/CD
 - **Monitoring**: Sentry for error tracking
 - **Testing**: Cypress for end-to-end testing
 
@@ -17,16 +16,14 @@ A comprehensive chess tournament management platform built with React, Supabase,
 - ELO rating system
 - Tournament creation and management
 - Real-time match updates
-- Social features (following, clubs)
 - Comprehensive analytics
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 16+
 - Supabase account
-- AWS account (for Lambda functions)
 - Sentry account (for error tracking)
 
 ### Installation
@@ -44,7 +41,6 @@ A comprehensive chess tournament management platform built with React, Supabase,
 
 4. Update the `.env` file with your configuration:
    - Supabase URL and anon key
-   - AWS API Gateway URL
    - Sentry DSN
 
 ### Database Setup
@@ -106,12 +102,11 @@ src/
 
 ### Phase 3: Advanced Features
 - [ ] Tournament brackets
-- [ ] Social features
 - [ ] Analytics dashboard
 - [ ] Notification system
 
 ### Phase 4: Production Deployment
-- [ ] AWS Amplify setup
+- [ ] Netlify setup
 - [ ] CI/CD pipeline
 - [ ] Monitoring and logging
 - [ ] Performance optimization
