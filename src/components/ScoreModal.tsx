@@ -15,7 +15,7 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
   // Get player names from the match object
   const challenger = match.player1;
   const challenged = match.player2;
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (challengerScore === challengedScore) {
@@ -182,26 +182,26 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
               <button
                 type="button"
                 onClick={() => adjustScore('challenger', 5)}
-                className="btn btn-ghost text-xs px-3 py-1"
+                className="btn btn-ghost text-xs px-3 py-1 mr-1"
                 style={{ backgroundColor: 'var(--surface-subtle)' }}
               >
-                +5 {challenger.name.split(' ')[0]}
+                +5 {challenger.username.split(' ')[0]}
               </button>
               <button
                 type="button"
                 onClick={() => adjustScore('challenger', 10)}
-                className="btn btn-ghost text-xs px-3 py-1"
+                className="btn btn-ghost text-xs px-3 py-1 mr-1"
                 style={{ backgroundColor: 'var(--surface-subtle)' }}
               >
-                +10 {challenger.name.split(' ')[0]}
+                +10 {challenger.username.split(' ')[0]}
               </button>
               <button
                 type="button"
                 onClick={() => adjustScore('challenged', 5)}
-                className="btn btn-ghost text-xs px-3 py-1"
+                className="btn btn-ghost text-xs px-3 py-1 mr-1"
                 style={{ backgroundColor: 'var(--surface-subtle)' }}
               >
-                +5 {challenged.name.split(' ')[0]}
+                +5 {challenged.username.split(' ')[0]}
               </button>
               <button
                 type="button"
@@ -209,7 +209,7 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
                 className="btn btn-ghost text-xs px-3 py-1"
                 style={{ backgroundColor: 'var(--surface-subtle)' }}
               >
-                +10 {challenged.name.split(' ')[0]}
+                +10 {challenged.username.split(' ')[0]}
               </button>
             </div>
           </div>
