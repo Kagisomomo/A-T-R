@@ -24,7 +24,12 @@ const MatchDetailPage: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('matches')
-          .select('*')
+          .select(`
+            *,
+            player1:profiles!matches_player1_id_fkey(username, elo_rating),
+            player2:profiles!matches_player2_id_fkey(username, elo_rating),
+            winner:profiles!matches_winner_id_fkey(username)
+          `)
           .eq('id', matchId)
           .single();
           
@@ -36,12 +41,15 @@ const MatchDetailPage: React.FC = () => {
             id: data.id,
             challengerId: data.player1_id,
             challengedId: data.player2_id,
+            player1: data.player1,
+            player2: data.player2,
             date: data.date,
             location: data.location,
             status: data.status,
             challengerScore: data.score ? parseInt(data.score.split('-')[0]) : undefined,
             challengedScore: data.score ? parseInt(data.score.split('-')[1]) : undefined,
             winner: data.winner_id,
+            winnerProfile: data.winner,
             createdAt: data.created_at
           };
           

@@ -18,12 +18,15 @@ export interface Match {
   id: string;
   challengerId: string;
   challengedId: string;
+  player1?: { username: string; elo_rating: number };
+  player2?: { username: string; elo_rating: number };
   date: string;
   location: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'declined';
+  status: 'pending' | 'confirmed' | 'completed' | 'declined' | 'in_progress' | 'cancelled';
   challengerScore?: number;
   challengedScore?: number;
-  winner?: string;
+  winner?: string; // winnerId
+  winnerProfile?: { username: string };
   createdAt: string;
   detailedStatsId?: string; // Link to detailed statistics
 }

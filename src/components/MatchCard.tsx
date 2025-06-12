@@ -1,7 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin, Trophy, Clock, Target } from 'lucide-react';
 import { Match } from '../types';
-import { UserService } from '../services/UserService';
 
 interface MatchCardProps {
   match: Match;
@@ -16,11 +15,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onReportScore,
   onViewDetails
 }) => {
-  const opponent = UserService.getPlayerById(
-    match.challengerId === currentUserId ? match.challengedId : match.challengerId
-  );
-  
+  // Determine which player is the opponent based on the current user ID
   const isChallenger = match.challengerId === currentUserId;
+  const opponentProfile = isChallenger ? match.player2 : match.player1;
+  
   const matchDate = new Date(match.date);
   const isCompleted = match.status === 'completed';
   
@@ -54,7 +52,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
     }
   };
 
-  if (!opponent) {
+  if (!opponentProfile) {
     return null;
   }
 
@@ -63,11 +61,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="player-avatar text-sm">
-            {opponent.name.split(' ').map(n => n[0]).join('')}
+            {opponentProfile.username.charAt(0).toUpperCase()}
           </div>
           <div>
             <h3 className="font-semibold" style={{ color: 'var(--text-standard)' }}>
-              vs {opponent.name}
+              vs {opponentProfile.username}
             </h3>
             <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>
               {isChallenger ? 'You challenged' : 'Challenged you'}

@@ -40,12 +40,15 @@ export const MatchList: React.FC = () => {
         id: match.id,
         challengerId: match.player1_id,
         challengedId: match.player2_id,
+        player1: match.player1,
+        player2: match.player2,
         date: match.date,
         location: match.location,
         status: match.status,
         challengerScore: match.score ? parseInt(match.score.split('-')[0]) : undefined,
         challengedScore: match.score ? parseInt(match.score.split('-')[1]) : undefined,
         winner: match.winner_id,
+        winnerProfile: match.winner,
         createdAt: match.created_at
       }));
       
