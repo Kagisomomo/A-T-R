@@ -7,11 +7,13 @@ export class DataInitializationService {
   static async initializeAllData(): Promise<void> {
     // Return existing promise if initialization is already in progress
     if (this.initializationPromise) {
+      console.log("Initialization already in progress, returning existing promise");
       return this.initializationPromise;
     }
 
     // Return immediately if already initialized
     if (this.isInitialized) {
+      console.log("Already initialized, returning immediately");
       return Promise.resolve();
     }
 
@@ -29,17 +31,21 @@ export class DataInitializationService {
     console.log('🚀 Initializing Africa Tennis data...');
     
     try {
+      console.log("Testing Supabase connection...");
       // Check if we have a valid Supabase connection
-      const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('count', { count: 'exact', head: true });
       
       if (error) {
+        console.error("Supabase connection error details:", error);
         throw new Error(`Supabase connection error: ${error.message}`);
       }
       
       console.log('✅ Supabase connection successful');
       this.isInitialized = true;
     } catch (error) {
-      console.error('❌ Failed to initialize data:', error);
+      console.error('❌ Failed to initialize data:', error instanceof Error ? error.message : error);
       this.isInitialized = false;
       throw error;
     }
