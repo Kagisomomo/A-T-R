@@ -1,5 +1,3 @@
-Here's the complete file content with the diff applied correctly:
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
@@ -61,6 +59,9 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
   const [player1Profile, setPlayer1Profile] = useState<any>(null);
   const [player2Profile, setPlayer2Profile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [statistics, setStatistics] = useState<MatchStatistics | null>(null);
+  const [timeline, setTimeline] = useState<MatchTimeline[]>([]);
+  const [highlights, setHighlights] = useState<MatchHighlight[]>([]);
   
   // Determine which player is the current user and which is the opponent
   const isUserChallenger = match.challengerId === user?.id;
@@ -369,7 +370,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                   </div>
                 </div>
                 <div className="stat-bar">
-                  <div className="stat-bar-label">{opponent?.name}</div>
+                  <div className="stat-bar-label">{opponent?.username}</div>
                   <div className="stat-bar-container">
                     <div 
                       className="stat-bar-fill opponent"
@@ -394,7 +395,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                   </div>
                   <div className="stat-player">
                     <span className="stat-value">{statistics.shots.opponent}</span>
-                    <span className="stat-label">{opponent?.name}</span>
+                    <span className="stat-label">{opponent?.username}</span>
                   </div>
                 </div>
               </div>
@@ -413,7 +414,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                   </div>
                   <div className="stat-player">
                     <span className="stat-value">{statistics.aces.opponent}</span>
-                    <span className="stat-label">{opponent?.name}</span>
+                    <span className="stat-label">{opponent?.username}</span>
                   </div>
                 </div>
               </div>
@@ -432,7 +433,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                   </div>
                   <div className="stat-player">
                     <span className="stat-value">{statistics.winners.opponent}</span>
-                    <span className="stat-label">{opponent?.name}</span>
+                    <span className="stat-label">{opponent?.username}</span>
                   </div>
                 </div>
               </div>
@@ -455,7 +456,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                     <span className="stat-value">
                       {statistics.breakPoints.opponent.won}/{statistics.breakPoints.opponent.total}
                     </span>
-                    <span className="stat-label">{opponent?.name}</span>
+                    <span className="stat-label">{opponent?.username}</span>
                   </div>
                 </div>
               </div>
@@ -474,7 +475,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                   </div>
                   <div className="stat-player">
                     <span className="stat-value">{statistics.unforcedErrors.opponent}</span>
-                    <span className="stat-label">{opponent?.name}</span>
+                    <span className="stat-label">{opponent?.username}</span>
                   </div>
                 </div>
               </div>
@@ -557,7 +558,7 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
           
           <div className="match-details-title-section">
             <h1 className="match-details-title">
-              {user?.name} vs {opponent.name}
+              {user?.username} vs {opponent.username}
             </h1>
             <div 
               className="match-details-status"
