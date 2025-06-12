@@ -29,6 +29,7 @@ export interface Match {
   winnerProfile?: { username: string };
   createdAt: string;
   detailedStatsId?: string; // Link to detailed statistics
+  score?: any; // JSONB score object for tennis scoring
 }
 
 export interface Tournament {
