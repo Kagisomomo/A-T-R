@@ -286,7 +286,7 @@ export const MatchList: React.FC = () => {
             <div className="matches-filters-header">
               <h2 className="matches-section-title">
                 <Filter size={24} />
-                All Matches ({matches.length})
+                Match History
               </h2>
             </div>
             
@@ -314,7 +314,7 @@ export const MatchList: React.FC = () => {
                     onChange={(e) => setTimeFilter(e.target.value as typeof timeFilter)}
                     className="form-select matches-filter-select"
                   >
-                    <option value="all">All Matches ({matches.length})</option>
+                    <option value="all">All History</option>
                     <option value="upcoming">Upcoming ({getTimeFilterCount('upcoming')})</option>
                     <option value="recent">Recent ({getTimeFilterCount('recent')})</option>
                   </select>
