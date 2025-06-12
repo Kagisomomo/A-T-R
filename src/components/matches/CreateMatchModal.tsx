@@ -204,12 +204,10 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         <div className="text-center mb-6">
           <Target size={48} className="mx-auto mb-4" style={{ color: 'var(--quantum-cyan)' }} />
           <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-standard)' }}>
-            {mode === 'challenge' ? `Challenge ${selectedPlayer?.username}` : 'Create New Match'}
+            {getTitle()}
           </h2>
           <p style={{ color: 'var(--text-subtle)' }}>
-            {mode === 'challenge' 
-              ? 'Send a match request to challenge this player' 
-              : 'Schedule a competitive match with another player'}
+            Schedule a competitive match with another player
           </p>
         </div>
 
@@ -435,17 +433,6 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                   <span className="match-summary-value">{selectedPlayer.username}</span>
                 </div>
                 <div className="match-summary-item">
-                  <span className="match-summary-label">Status:</span>
-                  <span className="match-summary-value">
-                    <span className="px-2 py-1 text-xs rounded-full" style={{ 
-                      backgroundColor: 'rgba(255, 149, 0, 0.1)',
-                      color: 'var(--warning-orange)'
-                    }}>
-                      Will be sent as pending request
-                    </span>
-                  </span>
-                </div>
-                <div className="match-summary-item">
                   <span className="match-summary-label">Date & Time:</span>
                   <span className="match-summary-value">
                     {new Date(`${formData.date}T${formData.time}`).toLocaleDateString()} at {formData.time}
@@ -497,3 +484,5 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
 };
 
 export default CreateMatchModal;
+
+export default CreateMatchModal
