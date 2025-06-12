@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -63,11 +64,45 @@ export const LoginForm: React.FC = () => {
     setMessage('');
 
     try {
+      // First check if the user exists in auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (authError) {
+        if (authError.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        throw authError;
+      }
+      
+      if (!authData.user) {
+        throw new Error('Unable to sign in. Please try again later.');
+      }
+      
+      // Check if the user has a profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .single();
+      
+      if (profileError) {
+        if (profileError.code === 'PGRST116') {
+          // No profile found for this user
+          throw new Error('Your account exists but profile data is missing. Please contact support.');
+        }
+        throw profileError;
+      }
+      
+      // If we get here, both auth and profile exist
       await signIn(email, password);
       setMessage('Login successful! Redirecting...');
       navigate('/dashboard');
     } catch (error: any) {
-      setMessage(error.message || 'Invalid credentials. Please try again.');
+      console.error('Login error:', error);
+      setMessage(error.message || 'An error occurred during sign in. Please try again.');
       setIsLoading(false);
     }
   };
