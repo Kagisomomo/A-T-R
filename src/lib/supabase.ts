@@ -50,6 +50,19 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     params: {
       eventsPerSecond: 10
     }
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+        },
+      }).catch(error => {
+        console.error('Supabase fetch error:', error);
+        throw new Error(`Network error: ${error.message}. Please check your internet connection and Supabase project status.`);
+      });
+    }
   }
 })
 
@@ -61,6 +74,19 @@ export const supabaseAdmin = createClient<Database>(
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      fetch: (url, options = {}) => {
+        return fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+          },
+        }).catch(error => {
+          console.error('Supabase admin fetch error:', error);
+          throw new Error(`Network error: ${error.message}. Please check your internet connection and Supabase project status.`);
+        });
+      }
     }
   }
 )
@@ -68,5 +94,39 @@ export const supabaseAdmin = createClient<Database>(
 // Helper function to handle Supabase errors
 export const handleSupabaseError = (error: any) => {
   console.error('Supabase error:', error)
+  
+  // Handle network errors specifically
+  if (error.message && error.message.includes('Failed to fetch')) {
+    throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
+  }
+  
+  // Handle other Supabase errors
+  if (error.code) {
+    switch (error.code) {
+      case 'PGRST116':
+        throw new Error('The requested resource was not found.')
+      case 'PGRST301':
+        throw new Error('You do not have permission to access this resource.')
+      default:
+        throw new Error(error.message || 'An unexpected database error occurred')
+    }
+  }
+  
   throw new Error(error.message || 'An unexpected error occurred')
+}
+
+// Test connection function
+export const testSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('profiles').select('count').limit(1)
+    if (error) {
+      console.error('Supabase connection test failed:', error)
+      return false
+    }
+    console.log('Supabase connection test successful')
+    return true
+  } catch (error) {
+    console.error('Supabase connection test failed:', error)
+    return false
+  }
 }
