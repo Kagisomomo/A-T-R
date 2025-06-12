@@ -97,6 +97,9 @@ export const MatchList: React.FC = () => {
       });
     }
 
+   // Hide pending matches in the "All Matches" section
+   filtered = filtered.filter(match => match.status !== 'pending');
+
     // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(match => match.status === statusFilter);
