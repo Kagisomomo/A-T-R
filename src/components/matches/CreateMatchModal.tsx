@@ -482,5 +482,3 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
     </div>
   );
 };
-
-export default CreateMatchModal;

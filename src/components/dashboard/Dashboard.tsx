@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Zap, Trophy, Calendar, ChevronRight, MapPin } from 'lucide-react';
+import { Target, Zap, Trophy, Calendar, ChevronRight, MapPin, Users } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useMatchStore } from '../../stores/matchStore';
 import MatchRequestActions from '../matches/MatchRequestActions';
 import { useTournamentStore } from '../../stores/tournamentStore';
 import { Link } from 'react-router-dom';
 import CreateMatchModal from '../matches/CreateMatchModal';
+import LoadingSpinner from '../LoadingSpinner';
+import { supabase } from '../../lib/supabase';
 
 export const Dashboard: React.FC = () => {
   const { user, profile } = useAuthStore();
@@ -15,11 +17,17 @@ export const Dashboard: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchMatches(user.id);
-      fetchTournaments();
+      setIsLoading(true);
+      Promise.all([
+        fetchMatches(user.id),
+        fetchTournaments()
+      ]).finally(() => {
+        setIsLoading(false);
+      });
     }
   }, [user, fetchMatches, fetchTournaments]);
 
@@ -27,7 +35,7 @@ export const Dashboard: React.FC = () => {
     // Find pending match requests where the current user is the challenged player
     if (matches.length > 0 && user) {
       const requests = matches.filter(match => 
-        match.status === 'pending' && match.player2_id === user.id
+        match.status === 'pending' && match.challengedId === user.id
       );
       setPendingRequests(requests);
     }
@@ -50,10 +58,10 @@ export const Dashboard: React.FC = () => {
     // Get upcoming tournaments
     const upcoming = tournaments
       .filter(tournament => 
-        new Date(tournament.start_date) > now && 
+        new Date(tournament.startDate) > now && 
         (tournament.status === 'registration_open' || tournament.status === 'registration_closed')
       )
-      .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
       .slice(0, 3);
     
     setUpcomingTournaments(upcoming);
@@ -74,6 +82,20 @@ export const Dashboard: React.FC = () => {
       (profile.matches_won / profile.matches_played * 100).toFixed(1) : 
       '0.0') : 
     '0.0';
+
+  if (isLoading) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-container">
+          <LoadingSpinner 
+            size="large" 
+            text="Loading dashboard..." 
+            subtext="Retrieving your tennis data"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-page">
@@ -131,7 +153,12 @@ export const Dashboard: React.FC = () => {
                 {recentMatches.length > 0 ? (
                   <div className="space-y-4">
                     {recentMatches.map(match => (
-                      <div key={match.id} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-elevated)' }}>
+                      <Link 
+                        to={`/matches/${match.id}`} 
+                        key={match.id} 
+                        className="p-4 rounded-lg block hover:shadow-md transition-shadow" 
+                        style={{ backgroundColor: 'var(--bg-elevated)' }}
+                      >
                         <div className="flex justify-between items-center mb-2">
                           <div className="font-medium" style={{ color: 'var(--text-standard)' }}>
                             {match.player1?.username || 'Player 1'} vs {match.player2?.username || 'Player 2'}
@@ -151,7 +178,7 @@ export const Dashboard: React.FC = () => {
                             Score: {match.score}
                           </div>
                         )}
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (
@@ -175,23 +202,39 @@ export const Dashboard: React.FC = () => {
                 
                 {upcomingTournaments.length > 0 ? (
                   <div className="space-y-4">
-                    {upcomingTournaments.map(tournament => (
-                      <div key={tournament.id} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-elevated)' }}>
+                    {upcomingTournaments.map(tournament => {
+                      // Format date properly
+                      const startDate = new Date(tournament.startDate || tournament.start_date);
+                      const format = tournament.format?.replace('_', ' ') || '';
+                      
+                      return (
+                      <Link 
+                        to={`/tournaments/${tournament.id}`} 
+                        key={tournament.id} 
+                        className="p-4 rounded-lg block hover:shadow-md transition-shadow" 
+                        style={{ backgroundColor: 'var(--bg-elevated)' }}
+                      >
                         <div className="font-medium mb-2" style={{ color: 'var(--text-standard)' }}>
                           {tournament.name}
                         </div>
                         <div className="text-sm mb-1" style={{ color: 'var(--text-subtle)' }}>
                           <Calendar size={14} className="inline mr-1" />
-                          {new Date(tournament.start_date).toLocaleDateString()}
+                          {startDate.toLocaleDateString()}
                         </div>
-                        <div className="text-xs px-2 py-1 rounded-full inline-block" style={{ 
-                          backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                          color: 'var(--quantum-cyan)'
-                        }}>
-                          {tournament.format.replace('_', ' ')}
+                        <div className="flex justify-between items-center">
+                          <div className="text-xs px-2 py-1 rounded-full inline-block" style={{ 
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            color: 'var(--quantum-cyan)'
+                          }}>
+                            {format}
+                          </div>
+                          <div className="text-xs flex items-center" style={{ color: 'var(--text-subtle)' }}>
+                            <Users size={12} className="mr-1" />
+                            {tournament.participantCount || 0}/{tournament.maxParticipants || tournament.max_participants}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      </Link>
+                    )})}
                   </div>
                 ) : (
                   <div className="text-center py-6">
@@ -253,7 +296,7 @@ export const Dashboard: React.FC = () => {
                   
                   <MatchRequestActions 
                     match={request} 
-                    onActionComplete={() => fetchMatches(user.id)} 
+                    onActionComplete={() => fetchMatches(user?.id || '')} 
                   />
                 </div>
               ))}
