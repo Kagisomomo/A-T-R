@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Target, Zap, Trophy, Calendar, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useMatchStore } from '../../stores/matchStore';
+import MatchRequestActions from '../matches/MatchRequestActions';
 import { useTournamentStore } from '../../stores/tournamentStore';
 import { Link } from 'react-router-dom';
 import CreateMatchModal from '../matches/CreateMatchModal';
@@ -138,6 +139,14 @@ export const Dashboard: React.FC = () => {
                           <div className="mt-2 font-medium" style={{ color: 'var(--quantum-cyan)' }}>
                             Score: {match.score}
                           </div>
+                        )}
+                        
+                        {/* Show accept/decline buttons for pending matches where user is challenged */}
+                        {match.status === 'pending' && match.player2_id === user?.id && (
+                          <MatchRequestActions 
+                            match={match} 
+                            onActionComplete={() => fetchMatches(user?.id)} 
+                          />
                         )}
                       </div>
                     ))}

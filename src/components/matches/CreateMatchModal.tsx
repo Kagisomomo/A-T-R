@@ -474,7 +474,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
                   <Target size={16} />
                   {getSubmitText()}
                 </>
-              )}
+              )} 
             </button>
           </div>
         </form>
