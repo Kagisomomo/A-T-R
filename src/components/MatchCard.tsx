@@ -55,6 +55,26 @@ const MatchCard: React.FC<MatchCardProps> = ({
     }
   };
 
+  // Format score for display
+  const getFormattedScore = () => {
+    if (typeof match.score === 'string') {
+      return match.score;
+    } else if (match.score && typeof match.score === 'object') {
+      // For JSONB score objects, format sets
+      try {
+        const sets = match.score.sets || [];
+        if (sets.length === 0) return 'No sets played';
+        
+        return sets.map((set: any) => 
+          `${set.player1_games}-${set.player2_games}`
+        ).join(', ');
+      } catch (err) {
+        console.error('Error formatting score:', err);
+        return 'Score unavailable';
+      }
+    }
+    return '';
+  };
   if (!opponentProfile) {
     return null;
   }
@@ -103,8 +123,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>Final Score:</div> 
             <div className="font-mono font-bold" style={{ color: 'var(--text-standard)' }}>
               {isChallenger 
-                ? `${match.challengerScore} - ${match.challengedScore}`
-                : `${match.challengedScore} - ${match.challengerScore}`
+                ? (match.challengerScore && match.challengedScore 
+                   ? `${match.challengerScore} - ${match.challengedScore}` 
+                   : getFormattedScore())
+                : (match.challengedScore && match.challengerScore 
+                   ? `${match.challengedScore} - ${match.challengerScore}` 
+                   : getFormattedScore())
               }
             </div>
           </div>

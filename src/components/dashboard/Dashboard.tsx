@@ -175,7 +175,13 @@ export const Dashboard: React.FC = () => {
                         </div>
                         {match.status === 'completed' && match.score && typeof match.score === 'string' && (
                           <div className="mt-2 font-medium" style={{ color: 'var(--quantum-cyan)' }}>
-                            Score: {match.score}
+                            Score: {typeof match.score === 'string' 
+                              ? match.score 
+                              : match.score.sets 
+                                ? match.score.sets.map((set: any) => 
+                                    `${set.player1_games}-${set.player2_games}`
+                                  ).join(', ') 
+                                : 'No sets played'}
                           </div>
                         )}
                       </Link>
