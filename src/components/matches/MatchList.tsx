@@ -144,11 +144,23 @@ export const MatchList: React.FC = () => {
           ? selectedMatch.challengerId 
           : selectedMatch.challengedId;
         
-        // Update match in Supabase
+        // Create a proper JSONB score object
+        const scoreObject = {
+          sets: [{
+            player1_games: challengerScore,
+            player2_games: challengedScore,
+            games: []
+          }],
+          current_game: { player1: '0', player2: '0' },
+          server_id: selectedMatch.challengerId,
+          is_tiebreak: false
+        };
+        
+        // Update match in Supabase with the new JSONB format
         await supabase
           .from('matches')
           .update({
-            score: `${challengerScore}-${challengedScore}`,
+            score: scoreObject,
             winner_id: winnerId,
             status: 'completed'
           })
