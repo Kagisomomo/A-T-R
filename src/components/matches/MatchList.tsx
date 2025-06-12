@@ -325,7 +325,6 @@ export const MatchList: React.FC = () => {
                     className="form-select matches-filter-select"
                   >
                     <option value="all">All Status</option>
-                    <option value="pending">Pending ({getFilterCount('pending')})</option>
                     <option value="in_progress">In Progress ({getFilterCount('in_progress')})</option>
                     <option value="completed">Completed ({getFilterCount('completed')})</option>
                     <option value="cancelled">Cancelled ({getFilterCount('cancelled')})</option>
