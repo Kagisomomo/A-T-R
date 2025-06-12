@@ -17,7 +17,7 @@ const MatchRequestActions: React.FC<MatchRequestActionsProps> = ({ match, onActi
     try {
       const { error } = await supabase
         .from('matches')
-        .update({ status: 'confirmed' })
+        .update({ status: 'in_progress' })
         .eq('id', match.id);
 
       if (error) throw error;
@@ -35,7 +35,7 @@ const MatchRequestActions: React.FC<MatchRequestActionsProps> = ({ match, onActi
     try {
       const { error } = await supabase
         .from('matches')
-        .update({ status: 'declined' })
+        .update({ status: 'cancelled' })
         .eq('id', match.id);
 
       if (error) throw error;
