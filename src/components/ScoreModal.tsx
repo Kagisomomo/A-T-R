@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, Trophy, Target, Plus, Minus } from 'lucide-react';
 import { Match } from '../types';
-import { UserService } from '../services/UserService';
 
 interface ScoreModalProps {
   match: Match;
@@ -12,9 +11,10 @@ interface ScoreModalProps {
 const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => {
   const [challengerScore, setChallengerScore] = useState(0);
   const [challengedScore, setChallengedScore] = useState(0);
-
-  const challenger = UserService.getPlayerById(match.challengerId);
-  const challenged = UserService.getPlayerById(match.challengedId);
+  
+  // Get player names from the match object
+  const challenger = match.player1;
+  const challenged = match.player2;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,10 +66,10 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
             <div className="text-center">
               <div className="player-avatar mx-auto mb-2">
-                {challenger.name.split(' ').map(n => n[0]).join('')}
+                {challenger?.username.charAt(0).toUpperCase() || 'P1'}
               </div>
               <p className="font-medium text-sm" style={{ color: 'var(--text-standard)', ...winnerStyles.challenger }}>
-                {challenger.name}
+                {challenger?.username || 'Player 1'}
               </p>
             </div>
 
@@ -81,10 +81,10 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
 
             <div className="text-center">
               <div className="player-avatar mx-auto mb-2">
-                {challenged.name.split(' ').map(n => n[0]).join('')}
+                {challenged?.username.charAt(0).toUpperCase() || 'P2'}
               </div>
               <p className="font-medium text-sm" style={{ color: 'var(--text-standard)', ...winnerStyles.challenged }}>
-                {challenged.name}
+                {challenged?.username || 'Player 2'}
               </p>
             </div>
           </div>
