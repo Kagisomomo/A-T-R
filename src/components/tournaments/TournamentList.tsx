@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Trophy, Calendar, MapPin, Users, Plus, Search, Filter } from 'lucide-react'
 import { useTournamentStore } from '../../stores/tournamentStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import LoadingSpinner from '../LoadingSpinner'
 import type { Database } from '../../types/database'
@@ -19,8 +20,10 @@ export const TournamentList: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showCreateForm, setShowCreateForm] = useState(false)
   
   const user = useAuthStore(state => state.user)
+  const navigate = useNavigate()
 
   const fetchTournaments = async () => {
     setLoading(true)
@@ -137,6 +140,15 @@ export const TournamentList: React.FC = () => {
     }
   }
 
+  const handleCreateTournament = () => {
+    // For now, we'll just navigate to the tournaments page with a query parameter
+    // In a real implementation, this would open the tournament creation modal
+    alert('Tournament creation is not fully implemented in this demo. This would open a tournament creation form.')
+    
+    // Alternatively, you could implement a modal similar to the match creation:
+    // setShowCreateForm(true)
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'registration_open':
@@ -185,7 +197,10 @@ export const TournamentList: React.FC = () => {
 
         {/* Create Tournament Button */}
         <div className="tournaments-create-section">
-          <button className="tournaments-create-btn">
+          <button 
+            onClick={handleCreateTournament}
+            className="tournaments-create-btn"
+          >
             <Plus size={16} />
             Create Tournament
           </button>
@@ -236,13 +251,16 @@ export const TournamentList: React.FC = () => {
               {searchQuery || statusFilter !== 'all' ? 'No tournaments found' : 'No tournaments available'}
             </h3>
             <p className="tournaments-empty-description">
-              {searchQuery || statusFilter !== 'all' 
+              {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
                 : 'Be the first to create a tournament and bring players together!'
               }
             </p>
             {!searchQuery && statusFilter === 'all' && (
-              <button className="tournaments-empty-btn">
+              <button 
+                onClick={handleCreateTournament}
+                className="tournaments-empty-btn"
+              >
                 <Plus size={16} />
                 Create First Tournament
               </button>
@@ -305,8 +323,8 @@ export const TournamentList: React.FC = () => {
                     Details
                   </button>
 
-                  {tournament.status === 'registration_open' && 
-                   !tournament.isRegistered && 
+                  {tournament.status === 'registration_open' &&
+                   !tournament.isRegistered &&
                    tournament.participantCount < tournament.max_participants && (
                     <button
                       onClick={() => handleRegister(tournament.id)}
