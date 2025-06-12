@@ -67,15 +67,7 @@ export const LoginForm: React.FC = () => {
       setMessage('Login successful! Redirecting...');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Login error:', error);
-      
-      if (error.message?.includes('Invalid login credentials')) {
-        setMessage('Invalid email or password. Please check your credentials and try again.');
-      } else if (error.message?.includes('Email not confirmed')) {
-        setMessage('Please check your email and confirm your account before signing in.');
-      } else {
-        setMessage(error.message || 'Login failed. Please try again.');
-      }
+      setMessage(error.message || 'Invalid credentials. Please try again.');
       setIsLoading(false);
     }
   };
@@ -97,24 +89,6 @@ export const LoginForm: React.FC = () => {
               <h1 className="logo-text">Africa Tennis</h1>
             </div>
             <p className="login-subtitle">Welcome back to your tennis journey</p>
-            
-            {/* Demo Credentials Helper */}
-            <div className="demo-credentials" style={{
-              background: '#f8f9fa',
-              border: '1px solid #e9ecef',
-              borderRadius: '8px',
-              padding: '12px',
-              marginTop: '16px',
-              fontSize: '14px',
-              color: '#6c757d'
-            }}>
-              <p style={{ margin: '0 0 8px 0', fontWeight: '500', color: '#495057' }}>
-                Need to create an account?
-              </p>
-              <p style={{ margin: '0' }}>
-                Click "Create Account" below to register, or check your Supabase dashboard to verify existing users.
-              </p>
-            </div>
           </div>
 
           {/* Form Section */}
