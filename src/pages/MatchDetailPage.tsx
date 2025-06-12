@@ -116,7 +116,16 @@ const MatchDetailPage: React.FC = () => {
     );
   }
 
-  return <MatchDetailsPage match={match} onBack={handleBack} />;
+  return (
+    <MatchDetailsPage 
+      match={match} 
+      onBack={handleBack} 
+      onActionComplete={() => {
+        // Refresh match data after action
+        fetchMatchDetails();
+      }} 
+    />
+  );
 };
 
 export default MatchDetailPage;

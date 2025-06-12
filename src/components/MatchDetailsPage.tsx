@@ -20,10 +20,12 @@ import {
 import { Match } from '../types';
 import { StatisticsService } from '../services/StatisticsService';
 import { useAuthStore } from '../stores/authStore';
+import MatchRequestActions from './matches/MatchRequestActions';
 
 interface MatchDetailsPageProps {
   match: Match;
   onBack: () => void;
+  onActionComplete?: () => void;
 }
 
 interface MatchStatistics {
@@ -53,7 +55,7 @@ interface MatchHighlight {
   videoUrl?: string;
 }
 
-const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) => {
+const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack, onActionComplete = () => {} }) => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'statistics' | 'timeline' | 'highlights'>('overview');
   const [player1Profile, setPlayer1Profile] = useState<any>(null);
@@ -342,6 +344,19 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack }) =>
                 <li>Areas to work on: consistency on second serve</li>
               </ul>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Match Request Actions - Show for pending matches where current user is challenged */}
+      {match.status === 'pending' && match.challengedId === user?.id && (
+        <div className="match-request-actions-section">
+          <h3 className="match-details-section-title">Match Request</h3>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+            <p className="text-yellow-800 mb-4">
+              {match.player1?.username} has challenged you to a match. Please respond to this request.
+            </p>
+            <MatchRequestActions match={match} onActionComplete={onActionComplete} />
           </div>
         </div>
       )}

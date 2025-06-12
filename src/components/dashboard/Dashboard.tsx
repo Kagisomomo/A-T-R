@@ -11,6 +11,7 @@ export const Dashboard: React.FC = () => {
   const { user, profile } = useAuthStore();
   const { matches, fetchMatches } = useMatchStore();
   const { tournaments, fetchTournaments } = useTournamentStore();
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([]);
@@ -21,6 +22,16 @@ export const Dashboard: React.FC = () => {
       fetchTournaments();
     }
   }, [user, fetchMatches, fetchTournaments]);
+
+  useEffect(() => {
+    // Find pending match requests where the current user is the challenged player
+    if (matches.length > 0 && user) {
+      const requests = matches.filter(match => 
+        match.status === 'pending' && match.player2_id === user.id
+      );
+      setPendingRequests(requests);
+    }
+  }, [matches, user]);
 
   useEffect(() => {
     // Process matches for display
@@ -140,14 +151,6 @@ export const Dashboard: React.FC = () => {
                             Score: {match.score}
                           </div>
                         )}
-                        
-                        {/* Show accept/decline buttons for pending matches where user is challenged */}
-                        {match.status === 'pending' && match.player2_id === user?.id && (
-                          <MatchRequestActions 
-                            match={match} 
-                            onActionComplete={() => fetchMatches(user?.id)} 
-                          />
-                        )}
                       </div>
                     ))}
                   </div>
@@ -200,6 +203,63 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Pending Match Requests Section */}
+        {pendingRequests.length > 0 && (
+          <div className="dashboard-section stagger-1">
+            <h2 className="dashboard-section-title">
+              <Target size={24} className="mr-2" />
+              Pending Match Requests ({pendingRequests.length})
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {pendingRequests.map(request => (
+                <div key={request.id} className="card" style={{ borderColor: 'var(--warning-orange)', backgroundColor: 'rgba(255, 149, 0, 0.05)' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="player-avatar text-sm">
+                        {request.player1?.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold" style={{ color: 'var(--text-standard)' }}>
+                          {request.player1?.username} challenged you
+                        </h3>
+                        <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>
+                          Match request pending your response
+                        </p>
+                      </div>
+                    </div>
+                    <div 
+                      className="px-3 py-1 rounded-full text-xs font-medium"
+                      style={{ 
+                        backgroundColor: 'rgba(255, 149, 0, 0.2)',
+                        color: 'var(--warning-orange)'
+                      }}
+                    >
+                      Pending
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+                      <Calendar size={14} />
+                      <span>{new Date(request.date).toLocaleDateString()} at {new Date(request.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+                      <MapPin size={14} />
+                      <span>{request.location}</span>
+                    </div>
+                  </div>
+                  
+                  <MatchRequestActions 
+                    match={request} 
+                    onActionComplete={() => fetchMatches(user.id)} 
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Main Action Section */}
         <div className="dashboard-section stagger-2">
