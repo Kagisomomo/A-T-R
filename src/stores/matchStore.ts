@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { apiClient } from '../lib/aws'
 import type { Database } from '../types/database'
 
 type Match = Database['public']['Tables']['matches']['Row']
@@ -23,25 +24,22 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   // Fetch all matches or matches for a specific user
   fetchMatches: async (userId?: string) => {
     set({ loading: true })
+    
+    if (!userId) {
+      console.warn("fetchMatches called without a userId");
+      set({ loading: false });
+      return;
+    }
+    
     try {
-      let query = supabase
-        .from('matches')
-        .select(`
-          *,
-          player1:profiles!matches_player1_id_fkey(username, elo_rating),
-          player2:profiles!matches_player2_id_fkey(username, elo_rating),
-          winner:profiles!matches_winner_id_fkey(username)
-        `)
-        .order('date', { ascending: false })
-
-      if (userId) {
-        query = query.or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+      // Call the AWS Lambda function instead of Supabase directly
+      const response = await apiClient.getMatches(userId);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch matches');
       }
-
-      const { data, error } = await query
-
-      if (error) throw error
-      set({ matches: data || [], loading: false })
+      
+      set({ matches: response.data || [], loading: false });
     } catch (error: any) {
       console.error('Error fetching matches:', error)
       set({ loading: false })

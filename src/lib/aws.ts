@@ -69,6 +69,11 @@ class ApiClient {
   }
 
   // Match operations
+  async getMatches(userId: string) {
+    return this.request(`/matches?userId=${userId}`);
+  }
+
+  // Match operations
   async createMatch(matchData: {
     player1Id: string
     player2Id: string
@@ -114,13 +119,6 @@ class ApiClient {
   // Tournament operations
   async generateTournamentBracket(tournamentId: string) {
     return this.request(`/tournaments/${tournamentId}/generate-bracket`, {
-      method: 'POST'
-    })
-  }
-
-  // Tournament operations
-  async generateTournamentBracket(tournamentId: string) {
-    return this.request(`/tournaments/${tournamentId}/bracket`, {
       method: 'POST'
     })
   }
