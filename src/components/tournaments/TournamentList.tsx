@@ -3,7 +3,6 @@ import { Trophy, Calendar, MapPin, Users, Plus, Search, Filter } from 'lucide-re
 import { useTournamentStore } from '../../stores/tournamentStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useNavigate } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import LoadingSpinner from '../LoadingSpinner'
 import TournamentCreateForm from '../TournamentCreateForm'
