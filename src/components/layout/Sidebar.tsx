@@ -16,15 +16,14 @@ import {
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuthStore } from '../../stores/authStore';
-import { useAuth } from '../../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile } = useAuthStore();
-  const { signOut } = useAuth();
+  const { profile, signOut } = useAuthStore();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
@@ -37,10 +36,13 @@ const Sidebar: React.FC = () => {
 
   const handleSignOut = async () => {
     try {
+      setIsSigningOut(true);
       await signOut();
       navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
@@ -146,14 +148,24 @@ const Sidebar: React.FC = () => {
         <div className="mt-auto p-4">
           <button
             onClick={handleSignOut}
+            disabled={isSigningOut}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors"
             style={{ 
               color: 'var(--error-pink)', 
               backgroundColor: 'rgba(255, 51, 102, 0.1)' 
             }}
           >
-            <LogOut size={16} />
-            {!isCollapsed && <span>Sign Out</span>}
+            {isSigningOut ? (
+              <>
+                <div className="loading-spinner w-4 h-4"></div>
+                {!isCollapsed && <span>Signing Out...</span>}
+              </>
+            ) : (
+              <>
+                <LogOut size={16} />
+                {!isCollapsed && <span>Sign Out</span>}
+              </>
+            )}
           </button>
         </div>
 
