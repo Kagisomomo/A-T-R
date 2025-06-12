@@ -39,6 +39,18 @@ const MatchDetailPage: React.FC = () => {
         
         if (data) {
           // Convert Supabase match to our app format
+          let challengerScore, challengedScore;
+
+          // Safely check if score is a string (for old data) before splitting
+          if (typeof data.score === 'string' && data.score.includes('-')) {
+            const parts = data.score.split('-');
+            challengerScore = parseInt(parts[0], 10);
+            challengedScore = parseInt(parts[1], 10);
+          }
+
+          // For new JSONB scores, these will be undefined.
+          // The MatchDetailsPage component will handle rendering the live score object.
+
           const convertedMatch: Match = {
             id: data.id,
             challengerId: data.player1_id,
@@ -48,11 +60,12 @@ const MatchDetailPage: React.FC = () => {
             date: data.date,
             location: data.location,
             status: data.status,
-            challengerScore: data.score ? parseInt(data.score.split('-')[0]) : undefined,
-            challengedScore: data.score ? parseInt(data.score.split('-')[1]) : undefined,
+            challengerScore, // Use the safely parsed score
+            challengedScore, // Use the safely parsed score
             winner: data.winner_id,
             winnerProfile: data.winner,
-            createdAt: data.created_at
+            createdAt: data.created_at,
+            score: data.score // Pass the raw score object along
           };
           
           setMatch(convertedMatch);
