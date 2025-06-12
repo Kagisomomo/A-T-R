@@ -26,6 +26,7 @@ interface MatchDetailsPageProps {
   match: Match;
   onBack: () => void;
   onActionComplete?: () => void;
+  onStartScoring?: () => void;
 }
 
 interface MatchStatistics {
@@ -55,7 +56,12 @@ interface MatchHighlight {
   videoUrl?: string;
 }
 
-const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack, onActionComplete = () => {} }) => {
+const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ 
+  match, 
+  onBack, 
+  onActionComplete = () => {},
+  onStartScoring
+}) => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'statistics' | 'timeline' | 'highlights'>('overview');
   const [player1Profile, setPlayer1Profile] = useState<any>(null);
@@ -358,6 +364,19 @@ const MatchDetailsPage: React.FC<MatchDetailsPageProps> = ({ match, onBack, onAc
             </p>
             <MatchRequestActions match={match} onActionComplete={onActionComplete} />
           </div>
+        </div>
+      )}
+      
+      {/* Live Scoring Button - Show for in_progress matches */}
+      {match.status === 'in_progress' && onStartScoring && (
+        <div className="mt-6">
+          <button
+            onClick={onStartScoring}
+            className="btn btn-primary btn-glare w-full flex items-center justify-center gap-2"
+          >
+            <Play size={20} />
+            Live Scoring Mode
+          </button>
         </div>
       )}
     </div>
