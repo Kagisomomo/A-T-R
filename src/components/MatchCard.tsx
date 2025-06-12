@@ -7,7 +7,7 @@ interface MatchCardProps {
   match: Match;
   currentUserId: string;
   onReportScore: () => void;
-  onViewDetails?: () => void;
+  onViewDetails?: (() => void) | undefined;
   onActionComplete?: () => void;
 }
 

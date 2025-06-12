@@ -173,7 +173,7 @@ export const Dashboard: React.FC = () => {
                         <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>
                           {new Date(match.date).toLocaleDateString()}
                         </div>
-                        {match.status === 'completed' && match.score && (
+                        {match.status === 'completed' && match.score && typeof match.score === 'string' && (
                           <div className="mt-2 font-medium" style={{ color: 'var(--quantum-cyan)' }}>
                             Score: {match.score}
                           </div>

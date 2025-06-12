@@ -40,11 +40,37 @@ export const MatchList: React.FC = () => {
       const convertedMatches = storeMatches.map(match => {
         let challengerScore, challengedScore;
 
-        // Check if score is a string (for legacy data) before splitting
-        if (typeof match.score === 'string' && match.score.includes('-')) {
-          const parts = match.score.split('-');
-          challengerScore = parseInt(parts[0], 10);
-          challengedScore = parseInt(parts[1], 10);
+        // Handle different score formats
+        if (match.score) {
+          if (typeof match.score === 'string' && match.score.includes('-')) {
+            // Legacy string format: "3-2"
+            const parts = match.score.split('-');
+            challengerScore = parseInt(parts[0], 10);
+            challengedScore = parseInt(parts[1], 10);
+          } else if (typeof match.score === 'object') {
+            // New JSONB format - extract final score from sets if available
+            try {
+              const sets = match.score.sets;
+              if (sets && Array.isArray(sets) && sets.length > 0) {
+                // Count sets won by each player
+                let player1Sets = 0;
+                let player2Sets = 0;
+                
+                for (const set of sets) {
+                  if (set.player1_games > set.player2_games) {
+                    player1Sets++;
+                  } else if (set.player2_games > set.player1_games) {
+                    player2Sets++;
+                  }
+                }
+                
+                challengerScore = player1Sets;
+                challengedScore = player2Sets;
+              }
+            } catch (err) {
+              console.error('Error parsing score object:', err);
+            }
+          }
         }
 
         // For new JSONB scores, these will be undefined
@@ -64,7 +90,8 @@ export const MatchList: React.FC = () => {
           winner: match.winner_id,
           winnerProfile: match.winner,
           createdAt: match.created_at,
-          score: match.score // Pass the raw score object along
+          score: match.score, // Pass the raw score object along
+          scoreDisplay: typeof match.score === 'string' ? match.score : null // Only use string scores for display
         };
       });
       
