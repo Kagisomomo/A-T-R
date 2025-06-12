@@ -100,7 +100,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {isCompleted && match.challengerScore !== undefined && match.challengedScore !== undefined && (
         <div className="border-t pt-4 mb-4" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center justify-between">
-            <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>Final Score:</div>
+            <div className="text-sm" style={{ color: 'var(--text-subtle)' }}>Final Score:</div> 
             <div className="font-mono font-bold" style={{ color: 'var(--text-standard)' }}>
               {isChallenger 
                 ? `${match.challengerScore} - ${match.challengedScore}`
@@ -145,7 +145,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         />
       )}
       
-      {!isCompleted && match.status !== 'pending' && (
+      {!isCompleted && match.status !== 'pending' && onViewDetails && (
         <button
           onClick={(e) => {
             e.stopPropagation();
