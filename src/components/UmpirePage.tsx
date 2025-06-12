@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/aws';
 import MatchScoring from './matches/MatchScoring';
 import type { Database } from '../types/database';
 
@@ -195,13 +196,12 @@ const UmpirePage: React.FC = () => {
     if (!tournamentToStart) return;
     
     try {
-      // Update tournament status to in_progress
-      const { error } = await supabase
-        .from('tournaments')
-        .update({ status: 'in_progress' })
-        .eq('id', tournamentToStart.id);
-        
-      if (error) throw error;
+      // Call the AWS Lambda function to generate the tournament bracket
+      const response = await apiClient.generateTournamentBracket(tournamentToStart.id);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to start tournament');
+      }
       
       // Refresh tournaments and matches
       await loadTournaments();
@@ -213,6 +213,7 @@ const UmpirePage: React.FC = () => {
       setTournamentToStart(null);
     } catch (error) {
       console.error('Error starting tournament:', error);
+      alert(`Failed to start tournament: ${error.message}`);
     }
   };
 

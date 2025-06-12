@@ -13,6 +13,7 @@ interface MatchState {
   createMatch: (match: MatchInsert) => Promise<Match>
   updateMatch: (id: string, updates: MatchUpdate) => Promise<void>
   subscribeToMatches: (userId: string) => () => void
+  awardPoint: (matchId: string, winningPlayerId: string, pointType?: string) => Promise<any>
 }
 
 export const useMatchStore = create<MatchState>((set, get) => ({
@@ -86,6 +87,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   // Award a point to a player during live scoring
   awardPoint: async (matchId: string, winningPlayerId: string, pointType: string = 'point_won') => {
     try {
+      // Call the AWS Lambda function instead of the Supabase Edge Function
       const response = await apiClient.updateMatchScore(matchId, {
         winningPlayerId,
         pointType

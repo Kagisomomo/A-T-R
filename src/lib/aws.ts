@@ -113,6 +113,13 @@ class ApiClient {
 
   // Tournament operations
   async generateTournamentBracket(tournamentId: string) {
+    return this.request(`/tournaments/${tournamentId}/generate-bracket`, {
+      method: 'POST'
+    })
+  }
+
+  // Tournament operations
+  async generateTournamentBracket(tournamentId: string) {
     return this.request(`/tournaments/${tournamentId}/bracket`, {
       method: 'POST'
     })
