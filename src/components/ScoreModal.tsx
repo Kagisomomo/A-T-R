@@ -218,7 +218,7 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
           {challengerScore !== challengedScore && (
             <div className="text-center mb-4">
               <p className="text-sm font-medium" style={{ color: 'var(--quantum-cyan)' }}>
-                🏆 {challengerScore > challengedScore ? challenger.name : challenged.name} Wins!
+                🏆 {challengerScore > challengedScore ? challenger.username : challenged.username} Wins!
               </p>
             </div>
           )}

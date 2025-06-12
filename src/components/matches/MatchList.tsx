@@ -8,6 +8,7 @@ import ScoreModal from '../ScoreModal';
 import { useNavigate } from 'react-router-dom';
 import type { Database } from '../../types/database';
 import LoadingSpinner from '../LoadingSpinner';
+import { supabase } from '../../lib/supabase';
 
 type Match = Database['public']['Tables']['matches']['Row'];
 
