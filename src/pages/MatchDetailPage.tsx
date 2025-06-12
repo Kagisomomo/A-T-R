@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import MatchDetailsPage from '../components/MatchDetailsPage';
-import MatchScoring from '../components/matches/MatchScoring';
 import type { Database } from '../types/database';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Match } from '../types';
@@ -14,7 +13,6 @@ const MatchDetailPage: React.FC = () => {
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [scoringMode, setScoringMode] = useState(false);
   
   const { user } = useAuthStore();
 
@@ -112,10 +110,6 @@ const MatchDetailPage: React.FC = () => {
     };
   }, [matchId]);
 
-  const toggleScoringMode = () => {
-    setScoringMode(!scoringMode);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -162,21 +156,10 @@ const MatchDetailPage: React.FC = () => {
     );
   }
 
-  // Show scoring interface if in scoring mode
-  if (scoringMode && match) {
-    return (
-      <MatchScoring 
-        match={match as any} 
-        onBack={() => setScoringMode(false)} 
-      />
-    );
-  }
-
   return (
     <MatchDetailsPage 
       match={match} 
       onBack={handleBack} 
-      onStartScoring={toggleScoringMode}
       onActionComplete={() => {
         // Refresh match data after action
         fetchMatchDetails();
