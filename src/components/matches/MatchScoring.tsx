@@ -1,347 +1,458 @@
-import React, { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import LoadingSpinner from '../LoadingSpinner'
-import { Clock, Trophy, Users, Save, X, Play, Pause } from 'lucide-react'
-import { useMatchStore } from '../../stores/matchStore'
-import { useAuthStore } from '../../stores/authStore'
-import { supabase } from '../../lib/supabase'
-import type { Database } from '../../types/database'
+import React, { useState, useEffect } from 'react';
+import { 
+  Trophy, 
+  Zap, 
+  Target, 
+  X, 
+  RotateCcw, 
+  Plus, 
+  Loader2, 
+  AlertTriangle,
+  CheckCircle,
+  ArrowLeft
+} from 'lucide-react';
+import { useMatchStore } from '../../stores/matchStore';
+import { supabase } from '../../lib/supabase';
+import type { Database } from '../../types/database';
 
-type Match = Database['public']['Tables']['matches']['Row']
+type Match = Database['public']['Tables']['matches']['Row'] & {
+  player1?: { username: string; elo_rating: number };
+  player2?: { username: string; elo_rating: number };
+};
 
-const scoreSchema = z.object({
-  score: z.string().min(1, 'Score is required'),
-  winnerId: z.string().min(1, 'Winner must be selected'),
-  pgn: z.string().optional()
-})
-
-type ScoreFormData = z.infer<typeof scoreSchema>
+type PointType = 'point_won' | 'ace' | 'winner' | 'double_fault' | 'forced_error' | 'unforced_error';
 
 interface MatchScoringProps {
-  match: Match
-  onClose: () => void
-  onScoreSubmitted: () => void
+  match: Match;
+  onBack: () => void;
 }
 
-export const MatchScoring: React.FC<MatchScoringProps> = ({
-  match,
-  onClose,
-  onScoreSubmitted
-}) => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [matchStatus, setMatchStatus] = useState(match.status)
-  const [elapsedTime, setElapsedTime] = useState(0)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
+interface TennisScore {
+  sets: Array<{
+    player1_games: number;
+    player2_games: number;
+    games: Array<{
+      player1_points: number;
+      player2_points: number;
+      server_id: string;
+    }>;
+  }>;
+  current_game: {
+    player1: string;
+    player2: string;
+  };
+  server_id: string;
+  is_tiebreak: boolean;
+}
+
+export const MatchScoring: React.FC<MatchScoringProps> = ({ match, onBack }) => {
+  const [score, setScore] = useState<TennisScore | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pointType, setPointType] = useState<PointType>('point_won');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [confirmEndMatch, setConfirmEndMatch] = useState(false);
   
-  const updateMatch = useMatchStore(state => state.updateMatch)
-  const user = useAuthStore(state => state.user)
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch
-  } = useForm<ScoreFormData>({
-    resolver: zodResolver(scoreSchema)
-  })
-
-  const selectedWinner = watch('winnerId')
-
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setElapsedTime(prev => prev + 1)
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [isTimerRunning])
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const handleStartMatch = async () => {
-    try {
-      await updateMatch(match.id, { status: 'in_progress' })
-      setMatchStatus('in_progress')
-      setIsTimerRunning(true)
-    } catch (error) {
-      console.error('Error starting match:', error)
-    }
-  }
-
-  const handlePauseMatch = () => {
-    setIsTimerRunning(!isTimerRunning)
-  }
-
-  const onSubmit = async (data: ScoreFormData) => {
-    if (!user) return
-
-    setIsSubmitting(true)
-    try {
-      // Update match with result
-      await updateMatch(match.id, {
-        status: 'completed',
-        winner_id: data.winnerId,
-        score: data.score
-      })
-
-      // Record match event
-      await supabase.from('match_events').insert({
-        match_id: match.id,
-        event_type: 'checkmate',
-        player_id: data.winnerId,
-        description: `Match completed. Final score: ${data.score}`,
-        score_snapshot: {
-          final_score: data.score,
-          winner: data.winnerId,
-          duration: elapsedTime
-        },
-        metadata: {
-          pgn: data.pgn,
-          duration_seconds: elapsedTime
-        }
-      })
-
-      onScoreSubmitted()
-      onClose()
-    } catch (error: any) {
-      console.error('Error submitting score:', error)
-      alert('Failed to submit score: ' + error.message)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Get player profiles
-  const [player1Profile, setPlayer1Profile] = useState<any>(null)
-  const [player2Profile, setPlayer2Profile] = useState<any>(null)
-  const [loadingProfiles, setLoadingProfiles] = useState(true)
+  const { awardPoint } = useMatchStore();
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      setLoadingProfiles(true)
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('user_id', [match.player1_id, match.player2_id])
-
-      if (profiles) {
-        setPlayer1Profile(profiles.find(p => p.user_id === match.player1_id))
-        setPlayer2Profile(profiles.find(p => p.user_id === match.player2_id))
-      } else {
-        console.error('Failed to load player profiles')
+    // Initialize score from match data
+    if (match && match.score) {
+      try {
+        const parsedScore = typeof match.score === 'string' 
+          ? JSON.parse(match.score) 
+          : match.score;
+        
+        setScore(parsedScore);
+      } catch (err) {
+        console.error('Error parsing score:', err);
+        setError('Error loading match score');
       }
-      setLoadingProfiles(false)
+    } else {
+      // Initialize with default score
+      setScore({
+        sets: [],
+        current_game: { player1: '0', player2: '0' },
+        server_id: match.player1_id,
+        is_tiebreak: false
+      });
     }
 
-    fetchProfiles()
-  }, [match.player1_id, match.player2_id])
-  
-  if (loadingProfiles) {
-    return <LoadingSpinner text="Loading match data..." />
+    // Subscribe to real-time updates for this match
+    const subscription = supabase
+      .channel(`match-${match.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+          filter: `id=eq.${match.id}`
+        },
+        (payload) => {
+          if (payload.new && payload.new.score) {
+            setScore(payload.new.score as TennisScore);
+            
+            // If match is completed, show success message
+            if (payload.new.status === 'completed') {
+              setSuccessMessage('Match completed!');
+              setTimeout(() => {
+                onBack();
+              }, 3000);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [match.id]);
+
+  const handleAwardPoint = async (playerId: string) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      await awardPoint(match.id, playerId, pointType);
+      setPointType('point_won'); // Reset point type after successful submission
+    } catch (err: any) {
+      console.error('Error awarding point:', err);
+      setError(err.message || 'Failed to award point');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEndMatch = async () => {
+    setConfirmEndMatch(true);
+  };
+
+  const confirmMatchEnd = async () => {
+    setIsSubmitting(true);
+    try {
+      await supabase
+        .from('matches')
+        .update({ 
+          status: 'completed',
+          // Determine winner based on sets won
+          winner_id: getMatchWinner()
+        })
+        .eq('id', match.id);
+      
+      setSuccessMessage('Match completed successfully!');
+      setTimeout(() => {
+        onBack();
+      }, 3000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to end match');
+    } finally {
+      setIsSubmitting(false);
+      setConfirmEndMatch(false);
+    }
+  };
+
+  const getMatchWinner = (): string => {
+    if (!score || !score.sets || score.sets.length === 0) {
+      return match.player1_id; // Default to player1 if no score data
+    }
+    
+    let player1Sets = 0;
+    let player2Sets = 0;
+    
+    score.sets.forEach(set => {
+      if (set.player1_games > set.player2_games) {
+        player1Sets++;
+      } else if (set.player2_games > set.player1_games) {
+        player2Sets++;
+      }
+    });
+    
+    return player1Sets > player2Sets ? match.player1_id : match.player2_id;
+  };
+
+  const getPointTypeLabel = (type: PointType): string => {
+    switch (type) {
+      case 'ace': return 'Ace';
+      case 'winner': return 'Winner';
+      case 'double_fault': return 'Double Fault';
+      case 'forced_error': return 'Forced Error';
+      case 'unforced_error': return 'Unforced Error';
+      default: return 'Point';
+    }
+  };
+
+  const getPointTypeColor = (type: PointType): string => {
+    switch (type) {
+      case 'ace': return 'var(--accent-yellow)';
+      case 'winner': return 'var(--success-green)';
+      case 'double_fault': return 'var(--error-pink)';
+      case 'forced_error': return 'var(--warning-orange)';
+      case 'unforced_error': return 'var(--nebula-purple)';
+      default: return 'var(--quantum-cyan)';
+    }
+  };
+
+  if (!score) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="loading-spinner"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Trophy className="mr-2 h-6 w-6 text-yellow-500" />
-              Match Scoring
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-6 w-6" />
-            </button>
+    <div className="umpire-scoring-page">
+      <div className="umpire-scoring-container">
+        {/* Header */}
+        <div className="umpire-scoring-header">
+          <button
+            onClick={onBack}
+            className="umpire-back-btn"
+            disabled={isSubmitting}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div className="umpire-scoring-match-info">
+            Live Scoring: {match.player1?.username} vs {match.player2?.username}
           </div>
-
-          {/* Match Info */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Users className="h-5 w-5 text-gray-500 mr-2" />
-                <span className="font-medium">
-                  {player1Profile?.username} vs {player2Profile?.username}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 text-gray-500 mr-2" />
-                <span className="font-mono text-lg">{formatTime(elapsedTime)}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Status: <span className="font-medium capitalize">{matchStatus}</span>
-              </div>
-              <div className="flex space-x-2">
-                {matchStatus === 'pending' && (
-                  <button
-                    onClick={handleStartMatch}
-                    className="btn btn-primary btn-sm"
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Start Match
-                  </button>
-                )}
-                {matchStatus === 'in_progress' && (
-                  <button
-                    onClick={handlePauseMatch}
-                    className="btn btn-secondary btn-sm"
-                  >
-                    {isTimerRunning ? (
-                      <>
-                        <Pause className="h-4 w-4 mr-1" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-1" />
-                        Resume
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
+          <div className="umpire-scoring-set">
+            {score.is_tiebreak ? 'Tiebreak' : `Set ${score.sets.length + 1}`}
           </div>
-
-          {/* Score Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Winner Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Match Winner
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="relative">
-                  <input
-                    {...register('winnerId')}
-                    type="radio"
-                    value={match.player1_id}
-                    className="sr-only"
-                  />
-                  <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                    selectedWinner === match.player1_id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}>
-                    <div className="text-center">
-                      <div className="font-medium">{player1Profile?.username}</div>
-                      <div className="text-sm text-gray-500">
-                        Rating: {player1Profile?.elo_rating}
-                      </div>
-                    </div>
-                  </div>
-                </label>
-
-                <label className="relative">
-                  <input
-                    {...register('winnerId')}
-                    type="radio"
-                    value={match.player2_id}
-                    className="sr-only"
-                  />
-                  <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                    selectedWinner === match.player2_id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}>
-                    <div className="text-center">
-                      <div className="font-medium">{player2Profile?.username}</div>
-                      <div className="text-sm text-gray-500">
-                        Rating: {player2Profile?.elo_rating}
-                      </div>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              {errors.winnerId && (
-                <p className="mt-1 text-sm text-red-600">{errors.winnerId.message}</p>
-              )}
-            </div>
-
-            {/* Score Input */}
-            <div>
-              <label htmlFor="score" className="block text-sm font-medium text-gray-700 mb-2">
-                Final Score
-              </label>
-              <input
-                {...register('score')}
-                type="text"
-                id="score"
-                className="form-input"
-                placeholder="e.g., 1-0, 1/2-1/2"
-              />
-              {errors.score && (
-                <p className="mt-1 text-sm text-red-600">{errors.score.message}</p>
-              )}
-              <p className="mt-1 text-sm text-gray-500">
-                Standard notation: 1-0 (white wins), 0-1 (black wins), 1/2-1/2 (draw)
-              </p>
-            </div>
-
-            {/* PGN Input */}
-            <div>
-              <label htmlFor="pgn" className="block text-sm font-medium text-gray-700 mb-2">
-                PGN (Optional)
-              </label>
-              <textarea
-                {...register('pgn')}
-                id="pgn"
-                rows={4}
-                className="form-input"
-                placeholder="Paste the PGN notation of the game here..."
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Portable Game Notation for game analysis and review
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 btn btn-secondary"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || matchStatus !== 'in_progress'}
-                className="flex-1 btn btn-primary"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Submit Score
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
         </div>
+
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-4">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-4 mb-4">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              <span>{successMessage}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Scoreboard */}
+        <div className="bg-glass-bg backdrop-filter-blur border border-glass-border rounded-lg p-6 mb-6">
+          <div className="grid grid-cols-3 gap-4">
+            {/* Player 1 */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="player-avatar">
+                  {match.player1?.username.charAt(0).toUpperCase() || 'P1'}
+                </div>
+                <div className="font-bold text-lg">{match.player1?.username || 'Player 1'}</div>
+                {score.server_id === match.player1_id && (
+                  <div className="w-3 h-3 bg-accent-yellow rounded-full animate-pulse" title="Serving"></div>
+                )}
+              </div>
+              
+              {/* Sets */}
+              <div className="flex justify-center gap-2 mb-4">
+                {score.sets.map((set, index) => (
+                  <div 
+                    key={index} 
+                    className="w-8 h-8 flex items-center justify-center bg-bg-elevated border border-border-subtle rounded-md font-mono font-bold"
+                  >
+                    {set.player1_games}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Current Game */}
+              <div className="text-3xl font-bold font-mono">
+                {score.is_tiebreak ? score.current_game.player1 : score.current_game.player1}
+              </div>
+            </div>
+            
+            {/* Center/Score Info */}
+            <div className="text-center flex flex-col items-center justify-center">
+              <div className="text-xl font-bold mb-2">VS</div>
+              {score.is_tiebreak ? (
+                <div className="text-sm bg-warning-orange bg-opacity-20 text-warning-orange px-3 py-1 rounded-full">
+                  Tiebreak
+                </div>
+              ) : (
+                score.current_game.player1 === '40' && score.current_game.player2 === '40' ? (
+                  <div className="text-sm bg-accent-yellow bg-opacity-20 text-accent-yellow px-3 py-1 rounded-full">
+                    Deuce
+                  </div>
+                ) : (
+                  score.current_game.player1 === 'AD' ? (
+                    <div className="text-sm bg-quantum-cyan bg-opacity-20 text-quantum-cyan px-3 py-1 rounded-full">
+                      Advantage {match.player1?.username}
+                    </div>
+                  ) : (
+                    score.current_game.player2 === 'AD' ? (
+                      <div className="text-sm bg-quantum-cyan bg-opacity-20 text-quantum-cyan px-3 py-1 rounded-full">
+                        Advantage {match.player2?.username}
+                      </div>
+                    ) : null
+                  )
+                )
+              )}
+            </div>
+            
+            {/* Player 2 */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="player-avatar">
+                  {match.player2?.username.charAt(0).toUpperCase() || 'P2'}
+                </div>
+                <div className="font-bold text-lg">{match.player2?.username || 'Player 2'}</div>
+                {score.server_id === match.player2_id && (
+                  <div className="w-3 h-3 bg-accent-yellow rounded-full animate-pulse" title="Serving"></div>
+                )}
+              </div>
+              
+              {/* Sets */}
+              <div className="flex justify-center gap-2 mb-4">
+                {score.sets.map((set, index) => (
+                  <div 
+                    key={index} 
+                    className="w-8 h-8 flex items-center justify-center bg-bg-elevated border border-border-subtle rounded-md font-mono font-bold"
+                  >
+                    {set.player2_games}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Current Game */}
+              <div className="text-3xl font-bold font-mono">
+                {score.is_tiebreak ? score.current_game.player2 : score.current_game.player2}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Point Type Selection */}
+        <div className="bg-glass-bg backdrop-filter-blur border border-glass-border rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-bold mb-4">Point Type</h3>
+          <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+            {(['point_won', 'ace', 'winner', 'double_fault', 'forced_error', 'unforced_error'] as PointType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setPointType(type)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  pointType === type 
+                    ? 'bg-opacity-20 border-2' 
+                    : 'bg-bg-elevated border border-border-subtle hover:bg-hover-bg'
+                }`}
+                style={{
+                  backgroundColor: pointType === type ? `${getPointTypeColor(type)}20` : undefined,
+                  borderColor: pointType === type ? getPointTypeColor(type) : undefined,
+                  color: pointType === type ? getPointTypeColor(type) : 'var(--text-standard)'
+                }}
+              >
+                {getPointTypeLabel(type)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Point Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <button
+            onClick={() => handleAwardPoint(match.player1_id)}
+            disabled={isSubmitting}
+            className="btn btn-primary btn-lg p-6 h-auto flex flex-col items-center"
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-8 w-8 animate-spin mb-2" />
+            ) : (
+              <Plus className="h-8 w-8 mb-2" />
+            )}
+            <span className="text-lg font-bold">Point for {match.player1?.username}</span>
+          </button>
+          
+          <button
+            onClick={() => handleAwardPoint(match.player2_id)}
+            disabled={isSubmitting}
+            className="btn btn-primary btn-lg p-6 h-auto flex flex-col items-center"
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-8 w-8 animate-spin mb-2" />
+            ) : (
+              <Plus className="h-8 w-8 mb-2" />
+            )}
+            <span className="text-lg font-bold">Point for {match.player2?.username}</span>
+          </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          <button
+            onClick={onBack}
+            className="btn btn-ghost flex-1"
+            disabled={isSubmitting}
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back
+          </button>
+          
+          <button
+            onClick={handleEndMatch}
+            className="btn btn-secondary flex-1"
+            disabled={isSubmitting}
+          >
+            <Trophy className="h-5 w-5 mr-2" />
+            End Match
+          </button>
+        </div>
+
+        {/* End Match Confirmation Modal */}
+        {confirmEndMatch && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-glass-bg backdrop-filter-blur border border-glass-border rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <AlertTriangle className="h-6 w-6 text-warning-orange mr-2" />
+                End Match Confirmation
+              </h3>
+              
+              <p className="mb-6">
+                Are you sure you want to end this match? This will mark the match as completed and calculate the final result.
+              </p>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setConfirmEndMatch(false)}
+                  className="btn btn-ghost flex-1"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                
+                <button
+                  onClick={confirmMatchEnd}
+                  className="btn btn-primary flex-1"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                  )}
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default MatchScoring;

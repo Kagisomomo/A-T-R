@@ -98,6 +98,17 @@ class ApiClient {
     return this.request(`/matches/${matchId}/calculate-elo`, {
       method: 'POST'
     })
+  },
+
+  // Tennis scoring operations
+  async updateMatchScore(matchId: string, data: {
+    winningPlayerId: string;
+    pointType?: string;
+  }) {
+    return this.request(`/matches/${matchId}/score`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
   }
 
   // Tournament operations

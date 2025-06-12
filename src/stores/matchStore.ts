@@ -19,6 +19,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   matches: [],
   loading: false,
 
+  // Fetch all matches or matches for a specific user
   fetchMatches: async (userId?: string) => {
     set({ loading: true })
     try {
@@ -79,6 +80,25 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       await get().fetchMatches()
     } catch (error: any) {
       throw new Error(error.message || 'Failed to update match')
+    }
+  },
+
+  // Award a point to a player during live scoring
+  awardPoint: async (matchId: string, winningPlayerId: string, pointType: string = 'point_won') => {
+    try {
+      const response = await apiClient.updateMatchScore(matchId, {
+        winningPlayerId,
+        pointType
+      });
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to update score');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Error awarding point:', error);
+      throw new Error(error.message || 'Failed to award point');
     }
   },
 
