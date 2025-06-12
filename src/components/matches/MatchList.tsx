@@ -36,21 +36,36 @@ export const MatchList: React.FC = () => {
   useEffect(() => {
     if (storeMatches.length > 0) {
       // Convert Supabase matches to our app format
-      const convertedMatches = storeMatches.map(match => ({
-        id: match.id,
-        challengerId: match.player1_id,
-        challengedId: match.player2_id,
-        player1: match.player1,
-        player2: match.player2,
-        date: match.date,
-        location: match.location,
-        status: match.status,
-        challengerScore: match.score ? parseInt(match.score.split('-')[0]) : undefined,
-        challengedScore: match.score ? parseInt(match.score.split('-')[1]) : undefined,
-        winner: match.winner_id,
-        winnerProfile: match.winner,
-        createdAt: match.created_at
-      }));
+      const convertedMatches = storeMatches.map(match => {
+        let challengerScore, challengedScore;
+
+        // Check if score is a string (for legacy data) before splitting
+        if (typeof match.score === 'string' && match.score.includes('-')) {
+          const parts = match.score.split('-');
+          challengerScore = parseInt(parts[0], 10);
+          challengedScore = parseInt(parts[1], 10);
+        }
+
+        // For new JSONB scores, these will be undefined
+        // and the card will display the live score object
+
+        return {
+          id: match.id,
+          challengerId: match.player1_id,
+          challengedId: match.player2_id,
+          player1: match.player1,
+          player2: match.player2,
+          date: match.date,
+          location: match.location,
+          status: match.status,
+          challengerScore,
+          challengedScore,
+          winner: match.winner_id,
+          winnerProfile: match.winner,
+          createdAt: match.created_at,
+          score: match.score // Pass the raw score object along
+        };
+      });
       
       setMatches(convertedMatches);
       
