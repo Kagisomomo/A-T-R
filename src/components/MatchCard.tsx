@@ -123,13 +123,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
       )}
 
       {/* Show report score button for the challenger if match is pending */}
-      {match.status === 'pending' && isChallenger && (
+      {/* Show report score button for confirmed or in_progress matches */}
+      {(match.status === 'pending' || match.status === 'in_progress' || match.status === 'confirmed') && (
         <button
           onClick={onReportScore}
           className="btn btn-secondary btn-glare w-full"
         >
           <Target size={16} />
-          Update Match
+          Report Score
         </button>
       )}
       

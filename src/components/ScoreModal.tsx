@@ -42,7 +42,11 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onSubmit, onClose }) => 
 
   const winnerStyles = getWinnerStyle();
 
-  if (!challenger || !challenged) return null;
+  // Get player names from the match object
+  const challenger = match.player1;
+  const challenged = match.player2;
+  
+  if (!challenger?.username || !challenged?.username) return null;
 
   return (
     <div className="modal-backdrop fade-in">
