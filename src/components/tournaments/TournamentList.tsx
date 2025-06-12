@@ -3,8 +3,10 @@ import { Trophy, Calendar, MapPin, Users, Plus, Search, Filter } from 'lucide-re
 import { useTournamentStore } from '../../stores/tournamentStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import LoadingSpinner from '../LoadingSpinner'
+import TournamentCreateForm from '../TournamentCreateForm'
 import type { Database } from '../../types/database'
 
 type Tournament = Database['public']['Tables']['tournaments']['Row']
@@ -141,12 +143,7 @@ export const TournamentList: React.FC = () => {
   }
 
   const handleCreateTournament = () => {
-    // For now, we'll just navigate to the tournaments page with a query parameter
-    // In a real implementation, this would open the tournament creation modal
-    alert('Tournament creation is not fully implemented in this demo. This would open a tournament creation form.')
-    
-    // Alternatively, you could implement a modal similar to the match creation:
-    // setShowCreateForm(true)
+    setShowCreateForm(true)
   }
 
   const getStatusColor = (status: string) => {
@@ -339,6 +336,17 @@ export const TournamentList: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Tournament Creation Form */}
+      {showCreateForm && (
+        <TournamentCreateForm
+          onClose={() => setShowCreateForm(false)}
+          onTournamentCreated={() => {
+            setShowCreateForm(false);
+            fetchTournaments();
+          }}
+        />
+      )}
     </div>
   )
 }

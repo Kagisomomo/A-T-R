@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { X, Calendar, MapPin, Users, Trophy, User, Award, RotateCcw } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { TournamentService } from '../services/TournamentService';
-import { UserService } from '../services/UserService';
-import { Tournament } from '../types';
+import { useAuthStore } from '../stores/authStore';
+import { supabase } from '../lib/supabase';
 import MultiSelectCalendar from './MultiSelectCalendar';
 
 interface TournamentCreateFormProps {
   onClose: () => void;
-  onTournamentCreated: (tournament: Tournament) => void;
+  onTournamentCreated: () => void;
 }
 
 const TournamentCreateForm: React.FC<TournamentCreateFormProps> = ({ onClose, onTournamentCreated }) => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [showCalendar, setShowCalendar] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -30,7 +28,27 @@ const TournamentCreateForm: React.FC<TournamentCreateFormProps> = ({ onClose, on
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get available umpires (all users for now)
-  const availableUmpires = UserService.getAllPlayers();
+  const [availableUmpires, setAvailableUmpires] = useState<any[]>([]);
+  
+  useEffect(() => {
+    // Fetch available users who could be umpires
+    const fetchUmpires = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('user_id, username, elo_rating')
+          .order('elo_rating', { ascending: false })
+          .limit(20);
+          
+        if (error) throw error;
+        setAvailableUmpires(data || []);
+      } catch (err) {
+        console.error('Error fetching umpires:', err);
+      }
+    };
+    
+    fetchUmpires();
+  }, []);
 
   // Tournament format options with availability status
   const tournamentFormats = [
@@ -156,15 +174,26 @@ const TournamentCreateForm: React.FC<TournamentCreateFormProps> = ({ onClose, on
     setIsSubmitting(true);
 
     try {
-      const tournament = TournamentService.createTournament({
-        ...formData,
-        registrationDeadline: formData.registrationDeadline!.toISOString(),
-        startDate: formData.startDate!.toISOString(),
-        endDate: formData.endDate!.toISOString(),
-        organizerId: user.id,
-      });
+      // Create tournament in Supabase
+      const { data, error } = await supabase
+        .from('tournaments')
+        .insert({
+          name: formData.name,
+          description: formData.description,
+          organizer_id: user?.id,
+          start_date: formData.startDate!.toISOString(),
+          end_date: formData.endDate!.toISOString(),
+          format: formData.format,
+          max_participants: formData.maxParticipants,
+          location: formData.location,
+          status: 'registration_open'
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
 
-      onTournamentCreated(tournament);
+      onTournamentCreated();
       onClose();
     } catch (error) {
       console.error('Failed to create tournament:', error);
@@ -430,8 +459,8 @@ const TournamentCreateForm: React.FC<TournamentCreateFormProps> = ({ onClose, on
               >
                 <option value="">Select an umpire</option>
                 {availableUmpires.map((umpire) => (
-                  <option key={umpire.id} value={umpire.id}>
-                    {umpire.name} (Rating: {umpire.rating})
+                  <option key={umpire.user_id} value={umpire.user_id}>
+                    {umpire.username} (Rating: {umpire.elo_rating})
                   </option>
                 ))}
               </select>
